@@ -75,7 +75,7 @@ const Hero = () => {
           Buy & Sell your{" "}
           <span className="relative bg-gradient-to-r from-purple-700 to-[#764de1] bg-clip-text text-transparent">
             Social
-            <div className="z-10 absolute bottom-0 left-0 w-full scale-120">
+            <div className="z-10 absolute bottom-0 left-0 w-full scale-160">
               <img
                 src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gradient_arc.svg"
                 alt="gradient"

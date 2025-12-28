@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { assets } from "../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
-import { MenuIcon, XIcon } from "lucide-react";
+import { BoxIcon, GripIcon, ListIcon, MenuIcon, MessageCircleMoreIcon, XIcon } from "lucide-react";
+import { useClerk, useUser, UserButton } from "@clerk/clerk-react";
 
 const Navbar = () => {
+  const { user } = useUser();
+  const { openSignIn } = useClerk();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   return (
@@ -29,22 +33,72 @@ const Navbar = () => {
             {" "}
             Marketplace{" "}
           </Link>
-          <Link to="/messages" onClick={() => scrollTo(0, 0)}>
+          <Link
+            to={user ? "/messages" : "#"}
+            onClick={() => {
+              user ? scrollTo(0, 0) : openSignIn();
+            }}
+          >
             {" "}
             Messages{" "}
           </Link>
-          <Link to="/my-listings" onClick={() => scrollTo(0, 0)}>
+          <Link
+            to={user ? "/my-listings" : "#"}
+            onClick={() => {
+              user ? scrollTo(0, 0) : openSignIn();
+            }}
+          >
             {" "}
             My Listings{" "}
           </Link>
         </div>
 
-        <div>
-          <button className="max-sm:hidden cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
-            Login
-          </button>
-          <MenuIcon className="sm:hidden" onClick={() => setMenuOpen(true)} />
-        </div>
+        {!user ? (
+          <div>
+            <button
+              onClick={() => openSignIn()}
+              className="max-sm:hidden cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full"
+            >
+              Login
+            </button>
+            <MenuIcon className="sm:hidden" onClick={() => setMenuOpen(true)} />
+          </div>
+        ) : (
+          <UserButton>
+            <UserButton.MenuItems>
+              <UserButton.Action
+                label="Marketplace"
+                labelIcon={<GripIcon size={16} />}
+                onClick={() => navigate("/marketplace")}
+              />
+            </UserButton.MenuItems>
+
+            <UserButton.MenuItems>
+              <UserButton.Action 
+                label="Messages"
+                labelIcon={<MessageCircleMoreIcon size={16} />}
+                onClick={()=>navigate("/messages")}
+              />
+            </UserButton.MenuItems>
+
+            <UserButton.MenuItems>
+              <UserButton.Action 
+                label="My Listings"
+                labelIcon={<ListIcon size={16} />}
+                onClick={()=>navigate("/my-listings")}
+              />
+            </UserButton.MenuItems>
+
+            <UserButton.MenuItems>
+              <UserButton.Action 
+                label="My Orders"
+                labelIcon={<BoxIcon size={16} />}
+                onClick={()=>navigate("/my-orders")}
+              />
+            </UserButton.MenuItems>
+
+          </UserButton>
+        )}
       </div>
       {/* Mobile Menu */}
       <div
@@ -73,27 +127,14 @@ const Navbar = () => {
             {" "}
             Marketplace{" "}
           </Link>
-          <Link
-            to="/messages"
-            onClick={() => {
-              scrollTo(0, 0);
-              setMenuOpen(false);
-            }}
+
+          <button onClick={() => openSignIn()}>Messages</button>
+          <button onClick={() => openSignIn()}>My Listings</button>
+
+          <button
+            onClick={() => openSignIn()}
+            className=" cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full"
           >
-            {" "}
-            Messages{" "}
-          </Link>
-          <Link
-            to="/my-listings"
-            onClick={() => {
-              scrollTo(0, 0);
-              setMenuOpen(false);
-            }}
-          >
-            {" "}
-            My Listings{" "}
-          </Link>
-          <button className=" cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
             Login
           </button>
           <XIcon
