@@ -1,13 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
 @import "tailwindcss";
-*{
+
+* {
   font-family: "Rethink Sans", sans-serif;
 }
 
-button{
+button {
   @apply cursor-pointer;
 }
 
-.no-scrollbar::-webkit-scrollbar{
-  display : none;
+.no-scrollbar {
+  /* 1. This speaks to Internet Explorer and Edge */
+  -ms-overflow-style: none;
+
+  /* 2. This speaks to Firefox */
+  scrollbar-width: none;
+}
+
+/* 3. This speaks to Chrome, Safari and Opera (What you already had) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.cl-drawerRoot {
+  z-index: 100;
 }
