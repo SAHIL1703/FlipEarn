@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProfileLink, platformIcons } from "../assets/assets";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeft,
   ArrowUpRightFromSquare,
@@ -20,7 +20,11 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { setChat } from "../app/features/chatSlice";
 const ListingDetails = () => {
+
+  const dispatch = useDispatch();
+
   const navigate = useNavigate();
   const currency = import.meta.env.VITE_CURRENCY || "$";
   const [listing, setListing] = useState(null);
@@ -48,6 +52,14 @@ const ListingDetails = () => {
 
     console.log("Listings : ", listing);
   }, [listingId, listings]);
+
+  const loadChatbox =()=>{
+    dispatch(setChat({listing : listing}))
+  }
+
+   const purchaseAccount=async()=>{
+
+   }
 
   return listing ? (
     <div className="mx-auto min-h-screen px-6 md:px-16 lg:px-24 xl:px-32">
@@ -152,6 +164,7 @@ const ListingDetails = () => {
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
                   {images.map((_, index) => (
                     <button
+                      key={index}
                       onClick={() => setCurrent(index)}
                       className={`w-2.5 h-2.5 rounded-full ${
                         current === index ? "bg-indigo-600" : "bg-gray-300"
@@ -265,19 +278,25 @@ const ListingDetails = () => {
           <div className="flex-items-center justify-between text-sm text-gray-600 mb-4">
             <p>Member Since <span className="font-medium">{new Date(listing.owner?.createdAt).toLocaleDateString()}</span></p>
           </div>
-          <button className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
+          <button onClick={loadChatbox} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium flex items-center justify-center gap-2">
             <MessageSquareMoreIcon className="size-4" /> Chat
           </button>
 
           {/* //Purchase Button  */}
           {listing.isCredentialChanged && (
-            <button className="w-full mt-2 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition text-sm font-medium flex items-center justify-center gap-2">
+            <button onClick={purchaseAccount} className="w-full mt-2 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition text-sm font-medium flex items-center justify-center gap-2">
             <ShoppingBagIcon className="size-4" /> Purchase
           </button>
           )}
 
         </div>
       </div>
+
+          {/* Footer  */}
+          <div className="bg-white border-t border-gray-200 p-4 text-center mt-28">
+              <p className="text-sm text-gray-500">&copy; <span className="text-indigo-600">Sahil Pisal</span>. All Rights Reserved</p>
+          </div>
+
     </div>
   ) : (
     <div className="h-screen flex items-center justify-center">
