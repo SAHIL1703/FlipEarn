@@ -2,19 +2,28 @@ import React, { useEffect, useMemo, useState } from "react";
 import { dummyChats } from "../assets/assets";
 import { MessageCircle, Search } from "lucide-react";
 import {format , isToday , isYesterday ,parseISO} from 'date-fns'
-
+import {useDispatch} from "react-redux";
+import {setChat} from "../app/features/chatSlice"
 const Messages = () => {
+
+ const dispatch = useDispatch();
+
   const user = {
     id: "user_1",
   };
   const [chats, setChats] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-
+  
   const fetchUserChats = async () => {
     setChats(dummyChats);
     setLoading(false);
   };
+
+  const handleOpenChat =(chat)=>{
+    
+    dispatch(setChat({listing : chat.listing, chatId: chat.id}));
+  }
 
   const filteredChats = useMemo(()=>{
     const query = searchQuery.toLowerCase();
@@ -94,6 +103,7 @@ const Messages = () => {
                 chat.chatUserId === user.id ? chat.ownerUser : chat.chatUser;
               return (
                 <button
+                  onClick={()=>handleOpenChat(chat)}
                   className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
                   key={chat.id}
                 >
