@@ -23,16 +23,21 @@ import {
   WalletIcon,
   XCircle,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import StatCard from "../components/StatCard";
 import { platformIcons } from "../assets/assets";
+import CredentialSubmission from "../components/CredentialSubmission";
+import WithdrawModel from "../components/WithdrawModel";
 
 const MyListings = () => {
   const { userListings, balance } = useSelector((state) => state.listing);
   const currency = import.meta.env.VITE_CURRENCY || "$";
   const navigate = useNavigate();
+
+  const [showCredientailSubmission , setShowCredientailSubmission] = useState(null);
+  const [showWithdrawal , setShowWithdrawal] = useState(null);
 
   const totalValue = userListings.reduce(
     (sum, listing) => sum + (listing.price || 0),
@@ -147,6 +152,7 @@ const MyListings = () => {
           { label: "Available", value: balance.available, icon: CoinsIcon },
         ].map((item, index) => (
           <div
+          onClick={()=>item.label === "Available" && setShowWithdrawal(true)}
             key={index}
             className="flex flex-1 items-center justify-between p-4 rounded-lg border border-gray-100 cursor-pointer"
           >
@@ -201,7 +207,7 @@ const MyListings = () => {
                             <div className="bg-white text-gray-600 text-xs rounded border border-gray-200 p-2 px-3">
                               {!listing.isCredentialSubmitted && (
                                 <>
-                                  <button className="flex items-center gap-2 text-nowrap">
+                                  <button onClick={()=>setShowCredientailSubmission(listing)} className="flex items-center gap-2 text-nowrap">
                                     Add Credentials
                                   </button>
                                   <hr className="border border-gray-200 my-2" />
@@ -311,10 +317,20 @@ const MyListings = () => {
           ))}
         </div>
       )}
+      {showCredientailSubmission && (
+        <CredentialSubmission listing={showCredientailSubmission} onClose={()=>setShowCredientailSubmission(null)} />
+      )}
+
+      {showWithdrawal && (
+        <WithdrawModel onClose={()=>setShowWithdrawal(null)} />
+      )}
+
       {/* Footer  */}
           <div className="bg-white border-t border-gray-200 p-4 text-center mt-28">
               <p className="text-sm text-gray-500">&copy; <span className="text-indigo-600">Sahil Pisal</span>. All Rights Reserved</p>
           </div>
+          {/* <CredentialSubmission onClose={onclose} listing={userListings}/> */}
+          {/* <WithdrawModel onClose={onclose} /> */}
     </div>
   );
 };

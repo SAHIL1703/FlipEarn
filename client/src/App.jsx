@@ -10,12 +10,14 @@ import MyOrders from "./pages/MyOrders.jsx";
 import Loading from "./pages/Loading.jsx";
 import Navbar from "./components/Navbar.jsx";
 import ChatBox from "./components/ChatBox.jsx";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const { pathname } = useLocation();
 
   return (
     <div>
+      <Toaster />
       {!pathname.includes("/admin") && <Navbar />}
 
       <Routes>
