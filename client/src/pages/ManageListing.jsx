@@ -1,4 +1,4 @@
-import { Loader2Icon, Verified } from "lucide-react";
+import { Loader2Icon, Upload, Verified, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -31,8 +31,8 @@ const ManageListing = () => {
 
   const platform = [
     "instagram",
-    "youTube",
-    "tikTok",
+    "youtube",
+    "tiktok",
     "twitter",
     "facebook",
     "twitch",
@@ -123,6 +123,7 @@ const ManageListing = () => {
       </div>
     );
   }
+  console.log(formData.images)
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -171,10 +172,124 @@ const ManageListing = () => {
                 onChange={(v) => handleInputChange("niche", v)}
                 required={true}
               />
-
-
             </div>
           </Section>
+
+          {/* Metrix  */}
+          <Section title="Account Matrics">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <InputField
+                type="number"
+                label="Followers Count *"
+                value={formData.followers_count}
+                placeholder="10000"
+                onChange={(v) => handleInputChange("followers_count", v)}
+                required={true}
+                min={0}
+              />
+
+              <InputField
+                type="number"
+                label="Engagement Rate (%)"
+                value={formData.engagement_rate}
+                placeholder="4"
+                onChange={(v) => handleInputChange("engagement_rate", v)}
+                required={true}
+                min={0}
+                max={100}
+              />
+
+              <InputField
+                type="number"
+                label="Monthly Views/Impressions"
+                value={formData.monthly_views}
+                placeholder="100000"
+                onChange={(v) => handleInputChange("monthly_view", v)}
+                required={true}
+                min={0}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <InputField
+                label="Primary Audience Country"
+                value={formData.country}
+                placeholder="India"
+                onChange={(v) => handleInputChange("country", v)}
+                required={true}
+              />
+              <SelectField
+                label="Primary Audience Age Range"
+                options={age_range}
+                value={formData.age_range}
+                onChange={(v) => handleInputChange("age_range", v)}
+              />
+            </div>
+            {/* Adding Checkbox  */}
+            <div className="space-y-3">
+              <CheckboxField
+                label="Account is verified on the platform"
+                checked={formData.verified}
+                onChange={(v) => handleInputChange("verified", v)}
+              />
+
+              <CheckboxField
+                label="Account is monetized"
+                checked={formData.monetized}
+                onChange={(v) => handleInputChange("monetized", v)}
+              />
+            </div>
+          </Section>
+
+          {/* Pricing  */}
+          <Section title="Price & Description">
+            <InputField
+              label="Asking Price (USD)"
+              type="number"
+              value={formData.price}
+              placeholder="2500.00"
+              onChange={(v) => handleInputChange("price", v)}
+              required={true}
+              min={0}
+            />
+
+            <TextareaField
+              label="description"
+              value={formData.description}
+              onChange={(v) => handleInputChange("description", v)}
+            />
+          </Section>
+
+            {/* Images  */}
+            <Section title='Screenshots & Proof'>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input type="file" id="images" multiple accept="image/*" onChange={handleImageUpload} className="hidden"/>
+                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <label htmlFor="images" className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">Choose Files</label>
+                <p className="text-sm text-gray-500 mt-2">Upload scrrenshot or proof of account analytics</p>
+                
+              </div>
+              {formData.images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    {formData.images.map((img , index)=>(
+                      <div key={index} className="relative">
+                        <img src={typeof img === "string" ? img : URL.createObjectURL(img)} alt={`image/${index + 1}`} className="w-full h-24 object-cover rounded-lg"/>
+                        <button className="absolute -top-2 -right-2 size-6 bg-red-600 text-white rounded-full hover:bg-red-700 " type="button" onClick={()=>removeImage(index)}>
+                          <p className="flex items-center justify-center">x</p>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </Section>
+            
+            <div className="flex justify-end gap-3 text-sm">
+                <button onClick={()=>navigate(-1)} type="button" className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors" type="submit">
+                  {isEditing ? "Update Listing" : "Create Listing"}
+                </button>
+            </div>
+
         </form>
       </div>
     </div>
@@ -234,6 +349,37 @@ const SelectField = ({ label, options, value, onChange, required = false }) => (
         </option>
       ))}
     </select>
+  </div>
+);
+
+const CheckboxField = ({ label, checked, onChange, required = false }) => (
+  <label htmlFor="" className="flex items-center space-x-2 cursor-pointer">
+    <input
+      id=""
+      type="checkbox"
+      checked={checked}
+      onChange={(e) => onChange(e.target.checked)}
+      className="size-4"
+      required={required}
+    />
+    <span className="text-sm text-gray-700">{label}</span>
+  </label>
+);
+
+const TextareaField = ({ label, value, onChange, required = false }) => (
+  <div>
+    <label htmlFor="" className="block text-sm font-medium text-gray-700 mb-2 ">
+      {label}
+    </label>
+    <textarea
+      name=""
+      id=""
+      rows={5}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      className="w-full px-3 py-1.5 text-gray-600 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 border-gray-300"
+    />
   </div>
 );
 
