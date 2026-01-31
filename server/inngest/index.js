@@ -10,8 +10,9 @@ const syncUserCreation = inngest.createFunction(
     async ({ event }) => {
         const { data } = event;
 
-        // FIXED: Added 'await' here. Before this, 'user' was a Promise (always true),
-        // causing the code to skip the create block and fail on update.
+        // --- CRITICAL FIX HERE ---
+        // Added 'await'. Without this, 'user' is a Promise (true), so the code 
+        // assumes the user exists and skips the 'create' block below.
         const user = await prisma.user.findFirst({
             where: { id: data.id }
         });
@@ -26,6 +27,7 @@ const syncUserCreation = inngest.createFunction(
                 }
             });
         } else {
+            // This block was never running before because of the missing await
             await prisma.user.create({
                 data: {
                     id: data.id,
@@ -38,38 +40,28 @@ const syncUserCreation = inngest.createFunction(
     },
 );
 
-// 2. Fixed Deletion Logic
+// 2. Fixed Deletion Logic (Handles "User Not Found" errors gracefully)
 const syncUserDeletion = inngest.createFunction(
     { id: "delete-user-with-clerk" },
     { event: "clerk/user.deleted" },
     async ({ event }) => {
         const { data } = event;
 
-        const listings = await prisma.listing.findMany({
-            where: { ownerId: data.id },
-        });
-
-        const chats = await prisma.chat.findMany({
-            where: { OR: [{ ownerUserId: data.id }, { chatUserId: data.id }] }
-        });
-
-        const transactions = await prisma.transaction.findMany({
-            where: { userId: data.id }
-        });
+        const listings = await prisma.listing.findMany({ where: { ownerId: data.id } });
+        const chats = await prisma.chat.findMany({ where: { OR: [{ ownerUserId: data.id }, { chatUserId: data.id }] } });
+        const transactions = await prisma.transaction.findMany({ where: { userId: data.id } });
 
         if (listings.length === 0 && chats.length === 0 && transactions.length === 0) {
-            // FIXED: Wrapped in try/catch to handle cases where user doesn't exist
             try {
                 await prisma.user.delete({
                     where: { id: data.id }
                 });
             } catch (error) {
-                // If the error code is P2025, it means the record to delete wasn't found.
-                // We can safely ignore this as the desired state (user deleted) is achieved.
+                // If user is already gone (P2025), we don't need to crash
                 if (error.code === 'P2025') {
-                    console.log("User already deleted or not found, skipping.");
+                    console.log("User already deleted or not found.");
                 } else {
-                    throw error; // Rethrow real errors
+                    throw error;
                 }
             }
         } else {
@@ -87,9 +79,7 @@ const syncUserUpdatation = inngest.createFunction(
     { event: "clerk/user.updated" },
     async ({ event }) => {
         const { data } = event;
-
-        // Use upsert to be safe: Update if exists, Create if it doesn't.
-        // This prevents crashes if the 'created' event was missed.
+        // Upsert is safer than update: it creates the user if they were missed previously
         await prisma.user.upsert({
             where: { id: data.id },
             update: {
