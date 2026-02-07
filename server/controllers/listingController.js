@@ -259,3 +259,142 @@ export const deleteUserListing = async (req, res) => {
         res.status(500).json({ message: error.code || error.message })
     }
 }
+
+
+//Adding Credentials
+export const addCredential = async (req, res) => {
+    try {
+        const { userId } = req.auth();
+        const { listingId, credential } = req.body;
+
+        if (credential.length === 0 || !listingId) {
+            return res.status(400).json({ message: "Missing Field" })
+        }
+
+        const listing = await prisma.listing.findFirst({
+            where: { id: listingId, ownerId: userId }
+        })
+
+        if (!listing) {
+            return res.status(400).json({ message: "Listing not found or you are not the owner" })
+        }
+
+        await prisma.credential.create({
+            data: {
+                listingId,
+                originalCredential: credential
+            }
+        })
+
+        await prisma.listing.update({
+            where: { id: listingId },
+            data: { isCredentialSubmitted: true }
+        })
+
+        return res.json({ message: "Credential added successfully" })
+
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ message: error.code || error.message })
+    }
+}
+
+//Mark Listing as Featured 
+export const markFeatured = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { userId } = await req.auth()
+
+        //We have to be in premium plan to mark the listing as featured
+        if (req.plan !== "premium") {
+            return res.status(400).json({ message: "Premium plan Required" })
+        }
+
+        //Unset all other featured listing 
+        await prisma.listing.updateMany({
+            where: { ownerId: userId },
+            data: { featured: false }
+        })
+
+        //Mark the Listing as Featured
+        await prisma.listing.update({
+            where: { id: id },
+            data: { featured: true }
+        })
+
+        return res.json({ message: "Listing marked as featured" })
+
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ message: error.code || error.message })
+    }
+}
+
+export const getAllUserOrders = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        let orders = await prisma.transaction.findMany({
+            where: { userId, isPaid: true },
+            include: { listing: true }
+        })
+
+        if (!orders || orders.length === 0) {
+            return res.json({ orders: [] });
+        }
+
+        //Attach the Credentials to each orders
+        const credentials = await prisma.credential.findMany({
+            where: { listingId: { in: orders.map((order) => order.listingId) } }
+        })
+
+        const ordersWithCredentials = orders.map((order) => {
+            const credential = credentials.find((cred) => cred.listingId === order.listingId)
+            return { ...order, credential }
+        })
+
+        return res.json({ orders: ordersWithCredentials })
+
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ message: error.code || error.message })
+    }
+}
+
+export const withdrawAmount = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        const { amount, account } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        })
+
+        const balance = user.earned - user.withdrawn
+
+        if (amount > balance) {
+            return res.status(400).json({ message: "Insufficient balance" })
+        }
+
+        const withdrawal = await prisma.withdrawal.create({
+            data: {
+                userId, amount, account
+            }
+        })
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { withdrawn: { increment: amount } }
+        })
+
+        return res.json({ message: "Applied for the Withdrawal", withdrawal })
+
+
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ message: error.code || error.message })
+    }
+}
+
+export const purchaseAccount = async(req,res)=>{
+
+}
